@@ -1,0 +1,551 @@
+
+
+
+ARM Macro Assembler    Page 1 
+
+
+    1 00000000         ; Exemplo.s
+    2 00000000         ; Desenvolvido para a placa EK-TM4C1294XL
+    3 00000000         ; Prof. Guilherme Peron
+    4 00000000         ; 12/03/2018
+    5 00000000         
+    6 00000000         ; ------------------------------------------------------
+                       -------------------------
+    7 00000000                 THUMB                        ; Instruções do tip
+                                                            o Thumb-2
+    8 00000000         ; ------------------------------------------------------
+                       -------------------------
+    9 00000000         ; Declarações EQU - Defines
+   10 00000000         ;<NOME>         EQU <VALOR>
+   11 00000000         ; ------------------------------------------------------
+                       -------------------------
+   12 00000000         ; Área de Dados - Declarações de variáveis
+   13 00000000                 AREA             DATA, ALIGN=2
+   14 00000000         ; Se alguma variável for chamada em outro arquivo
+   15 00000000         ;EXPORT  <var> [DATA,SIZE=<tam>]   ; Permite chamar a va
+                       riável <var> a 
+   16 00000000         ; partir de outro arquivo
+   17 00000000         ;<var> SPACE <tam>                        ; Declara uma 
+                       variável de nome <var>
+   18 00000000         ; de <tam> bytes a partir da primeira 
+   19 00000000         ; posição da RAM  
+   20 00000000         
+   21 00000000         ; ------------------------------------------------------
+                       -------------------------
+   22 00000000         ; Área de Código - Tudo abaixo da diretiva a seguir será
+                        armazenado na memória de 
+   23 00000000         ;                  código
+   24 00000000                 AREA             |.text|, CODE, READONLY, ALIGN=
+2
+   25 00000000         
+   26 00000000         ; Se alguma função do arquivo for chamada em outro arqui
+                       vo 
+   27 00000000                 EXPORT           Start       ; Permite chamar a 
+                                                            função Start a part
+                                                            ir de 
+   28 00000000         ; outro arquivo. No caso startup.s
+   29 00000000         
+   30 00000000         ; Se chamar alguma função externa 
+   31 00000000         ;IMPORT <func>              ; Permite chamar dentro dest
+                       e arquivo uma 
+   32 00000000         ; função <func>
+   33 00000000                 IMPORT           PLL_Init
+   34 00000000                 IMPORT           SysTick_Init
+   35 00000000                 IMPORT           SysTick_Wait1ms
+   36 00000000                 IMPORT           GPIO_Init
+   37 00000000                 IMPORT           PortF_Output
+   38 00000000                 IMPORT           PortN_Output
+   39 00000000                 IMPORT           PortJ_Input
+   40 00000000         
+   41 00000000         ; ------------------------------------------------------
+                       -------------------------
+   42 00000000         ; Função main()
+   43 00000000         Start
+   44 00000000         ; Comece o código aqui <================================
+                       ======================
+
+
+
+ARM Macro Assembler    Page 2 
+
+
+   45 00000000 F7FF FFFE       BL               PLL_Init    ;Chama a subrotina 
+                                                            para alterar o cloc
+                                                            k do microcontrolad
+                                                            or para 80MHz
+   46 00000004 F7FF FFFE       BL               SysTick_Init ;Chama a subrotina
+                                                             para inicializar o
+                                                             SysTick
+   47 00000008 F7FF FFFE       BL               GPIO_Init   ;Chama a subrotina 
+                                                            que inicializa os G
+                                                            PIO
+   48 0000000C F04F 0401       MOV              R4, #2_0001 ;Reg do Passeio (On
+                                                            e Hot)
+   49 00000010 F04F 0500       MOV              R5, #2_00000000 ;Reg do Contado
+                                                            r Binário
+   50 00000014 F44F 767A       MOV              R6, #1000   ; Reg da Velocidade
+                                                             
+   51 00000018 F04F 0701       MOV              R7, #2_01   ;Reg de Modo (One H
+                                                            ot)
+   52 0000001C         
+   53 0000001C         MainLoop
+   54 0000001C F000 F80B       BL               TestaChave
+   55 00000020 2F01            CMP              R7, #2_01
+   56 00000022 BF08 F000 
+              F843             BLEQ             Passeio
+   57 00000028 BF18 F000 
+              F871             BLNE             Contador
+   58 0000002E 4630            MOV              R0, R6
+   59 00000030 F7FF FFFE       BL               SysTick_Wait1ms 
+                                                            ;AGUARDA UM SEGUNDO
+                                                            
+   60 00000034 E7F2            B                MainLoop
+   61 00000036         
+   62 00000036         ;Função de Testa Chave
+   63 00000036         TestaChave
+   64 00000036 B500            PUSH             {LR}
+   65 00000038 F7FF FFFE       BL               PortJ_Input ;Lê o estado das ch
+                                                            aves
+   66 0000003C 4681            MOV              R9,R0       ;Guarda o valor de 
+                                                            R0
+   67 0000003E F04F 0864       MOV              R8, #100    ;aguarda 100ms para
+                                                             evitar efeito debo
+                                                            uncing
+   68 00000042 F7FF FFFE       BL               SysTick_Wait1ms ;sub rotina par
+                                                            a aguardar 100ms
+   69 00000046         Verifica_SW1
+   70 00000046 F1B9 0F02       CMP              R9, #2_00000010 ;Verifica se so
+                                                            mente a chave SW1 e
+                                                            stá pressionada
+   71 0000004A D103            BNE              Verifica_SW2 ;Se o teste falhou
+                                                            , pula
+   72 0000004C F000 F812       BL               TrocaModo   ;Vai para a subroti
+                                                            na de mudança de mo
+                                                            do
+   73 00000050 F000 F826       BL               FimdoTeste
+   74 00000054         Verifica_SW2
+   75 00000054 F1B9 0F01       CMP              R9, #2_00000001 ;Verifica se so
+                                                            mente a chave SW2 e
+                                                            stá pressionada
+   76 00000058 D103            BNE              Verifica_Ambas ;Se o teste falh
+
+
+
+ARM Macro Assembler    Page 3 
+
+
+                                                            ou, pula
+   77 0000005A F000 F810       BL               TrocaVelocidade ;Vai para a sub
+                                                            rotina de mudança d
+                                                            e velocidade
+   78 0000005E F000 F81F       BL               FimdoTeste
+   79 00000062         Verifica_Ambas
+   80 00000062 F1B9 0F00       CMP              R9, #2_00000000 ;Verifica se am
+                                                            bas as chaves estão
+                                                             pressionadas
+   81 00000066 D11B            BNE              FimdoTeste  ;Se o teste falhou,
+                                                             pula
+   82 00000068 F000 F804       BL               TrocaModo   ;Vai para a subroti
+                                                            na de mudança de mo
+                                                            do
+   83 0000006C F000 F807       BL               TrocaVelocidade ;Vai para a sub
+                                                            rotina de mudança d
+                                                            e velocidade
+   84 00000070 F000 F816       BL               FimdoTeste
+   85 00000074         TrocaModo
+   86 00000074 2F01            CMP              R7, #2_01   ;VERIFICA SE ESTÁ N
+                                                            O PRIMEIRO MODO
+   87 00000076 BF0C            ITE              EQ
+   88 00000078 007F            LSLEQ            R7, #1      ;SE SIM, TROCA PARA
+                                                             O SEGUNDO
+   89 0000007A 087F            LSRNE            R7, #1      ;SE NÃO, VOLTA PARA
+                                                             O PRIMEIRO
+   90 0000007C 4770            BX               LR
+   91 0000007E         TrocaVelocidade
+   92 0000007E F5B6 7F7A       CMP              R6, #1000
+   93 00000082 D004            BEQ              Mil
+   94 00000084 F5B6 7FFA       CMP              R6, #500
+   95 00000088 D004            BEQ              Quinhentos
+   96 0000008A 2EC8            CMP              R6, #200
+   97 0000008C D005            BEQ              Duzentos
+   98 0000008E         Mil                                  ;se mil, baixa pra 
+                                                            500
+   99 0000008E F44F 76FA       MOV              R6, #500
+  100 00000092 4770            BX               LR
+  101 00000094         Quinhentos                           ;se quinhentos, bai
+                                                            xa pra 200
+  102 00000094 F04F 06C8       MOV              R6, #200
+  103 00000098 4770            BX               LR
+  104 0000009A         Duzentos                             ;se duzentos, sobe 
+                                                            pra 1000
+  105 0000009A F44F 767A       MOV              R6, #1000
+  106 0000009E 4770            BX               LR
+  107 000000A0         FimdoTeste
+  108 000000A0 F7FF FFFE       BL               PortJ_Input ;Chama a subrotina 
+                                                            que lê o estado das
+                                                             chaves e coloca o 
+                                                            resultado em R0
+  109 000000A4 2803            CMP              R0, #2_00000011 ;Verifica se ne
+                                                            nhuma chave está pr
+                                                            essionada
+  110 000000A6 D1FB            BNE              FimdoTeste  ;Se falhar, loop
+  111 000000A8 F85D EB04       POP              {LR}
+  112 000000AC 4770            BX               LR
+  113 000000AE         
+  114 000000AE         
+
+
+
+ARM Macro Assembler    Page 4 
+
+
+  115 000000AE         
+  116 000000AE         
+  117 000000AE         ;Função do Passeio de Cela
+  118 000000AE         Passeio                              ;Utilizando OneHot 
+                                                            pra facilitar visua
+                                                            lização
+  119 000000AE B500            PUSH             {LR}
+  120 000000B0 F04F 0800       MOV              R8, #0
+  121 000000B4 F04F 0900       MOV              R9, #0
+  122 000000B8         ;POSIÇÃO 1
+  123 000000B8 2C01            CMP              R4, #2_000001 ;TESTA SE O PRIME
+                                                            IRO LED DEVE SER AC
+                                                            ESO
+  124 000000BA BF02            ITTT             EQ
+  125 000000BC F04F 0802       MOVEQ            R8, #2_00000010 ;GUARDA NUM REG
+                                                             TEMPORÁRIO
+  126 000000C0 0064            LSLEQ            R4, #1
+  127 000000C2 E01C            BEQ              FinalSwitch
+  128 000000C4         ;POSIÇÃO 2 
+  129 000000C4 2C02            CMP              R4, #2_000010
+  130 000000C6 BF04            ITT              EQ
+  131 000000C8 F04F 0801       MOVEQ            R8, #2_00000001
+  132 000000CC 0064            LSLEQ            R4, #1
+  133 000000CE D016            BEQ              FinalSwitch
+  134 000000D0         ;POSIÇÃO 3 
+  135 000000D0 2C04            CMP              R4, #2_000100
+  136 000000D2 BF04            ITT              EQ
+  137 000000D4 F04F 0910       MOVEQ            R9, #2_00010000
+  138 000000D8 0064            LSLEQ            R4, #1
+  139 000000DA D010            BEQ              FinalSwitch
+  140 000000DC         ;POSIÇÃO 4 
+  141 000000DC 2C08            CMP              R4, #2_001000
+  142 000000DE BF04            ITT              EQ
+  143 000000E0 F04F 0901       MOVEQ            R9, #2_00000001
+  144 000000E4 0064            LSLEQ            R4, #1
+  145 000000E6 D00A            BEQ              FinalSwitch
+  146 000000E8         ;POSIÇÃO 5
+  147 000000E8 2C10            CMP              R4, #2_010000
+  148 000000EA BF04            ITT              EQ
+  149 000000EC F04F 0910       MOVEQ            R9, #2_00010000
+  150 000000F0 0064            LSLEQ            R4, #1
+  151 000000F2 D004            BEQ              FinalSwitch
+  152 000000F4         ;POSIÇÃO 6 
+  153 000000F4 2C20            CMP              R4, #2_100000
+  154 000000F6 BF04            ITT              EQ
+  155 000000F8 F04F 0801       MOVEQ            R8, #2_00000001
+  156 000000FC 2401            MOVEQ            R4, #1
+  157 000000FE         FinalSwitch
+  158 000000FE 4648            MOV              R0, R9
+  159 00000100 F7FF FFFE       BL               PortF_Output
+  160 00000104 4640            MOV              R0, R8
+  161 00000106 F7FF FFFE       BL               PortN_Output
+  162 0000010A F85D EB04       POP              {LR}
+  163 0000010E 4770            BX               LR
+  164 00000110         
+  165 00000110         ;Função do Contador Binário
+  166 00000110         Contador
+  167 00000110 B500            PUSH             {LR}
+  168 00000112 F005 080C       AND              R8, R5, #2_1100 ;mascara para p
+
+
+
+ARM Macro Assembler    Page 5 
+
+
+                                                            egar os bits da por
+                                                            ta N
+  169 00000116 EA4F 0898       LSR              R8, #2      ;posicionando os bi
+                                                            ts da porta N
+  170 0000011A F005 0902       AND              R9, R5, #2_0010 ;mascara para p
+                                                            egar os bits da por
+                                                            ta F
+  171 0000011E F005 0A01       AND              R10, R5, #2_0001 ;mascara para 
+                                                            pegar os bits da po
+                                                            rta F
+  172 00000122 EA4F 09C9       LSL              R9, #3      ;posicionando o bit
+                                                             4 da porta F
+  173 00000126 EA49 000A       ORR              R0, R9, R10 ;posicionando corre
+                                                            tamente com o ORR o
+                                                            s bits da porta F
+  174 0000012A F7FF FFFE       BL               PortF_Output
+  175 0000012E 4640            MOV              R0, R8
+  176 00000130 F7FF FFFE       BL               PortN_Output
+  177 00000134 F85D EB04       POP              {LR}
+  178 00000138 2D0F            CMP              R5, #15     ;comparando o valor
+                                                             do contador com o 
+                                                            máximo
+  179 0000013A BF14            ITE              NE
+  180 0000013C 3501            ADDNE            R5, #1      ;se for menor, incr
+                                                            ementa
+  181 0000013E 2500            MOVEQ            R5, #0      ;se for igual, zera
+                                                            
+  182 00000140 4770            BX               LR
+  183 00000142         ;Função do Contador
+  184 00000142         
+  185 00000142 00 00           ALIGN                        ; garante que o fim
+                                                             da seção está alin
+                                                            hada 
+  186 00000144                 END                          ; fim do arquivo
+Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M4.fp.sp --apcs=
+interwork --depend=.\exemplo.d -o.\exemplo.o -I.\RTE\_Target_1 -IC:\Users\User\
+AppData\Local\Arm\Packs\Keil\TM4C_DFP\1.1.0\Device\Include\TM4C129 -IC:\Keil_v5
+\ARM\CMSIS\Include --predefine="__EVAL SETA 1" --predefine="__UVISION_VERSION S
+ETA 529" --predefine="TM4C1294NCPDT SETA 1" --list=.\exemplo.lst exemplo.s
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Relocatable symbols
+
+DATA 00000000
+
+Symbol: DATA
+   Definitions
+      At line 13 in file exemplo.s
+   Uses
+      None
+Comment: DATA unused
+1 symbol
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Relocatable symbols
+
+.text 00000000
+
+Symbol: .text
+   Definitions
+      At line 24 in file exemplo.s
+   Uses
+      None
+Comment: .text unused
+Contador 00000110
+
+Symbol: Contador
+   Definitions
+      At line 166 in file exemplo.s
+   Uses
+      At line 57 in file exemplo.s
+Comment: Contador used once
+Duzentos 0000009A
+
+Symbol: Duzentos
+   Definitions
+      At line 104 in file exemplo.s
+   Uses
+      At line 97 in file exemplo.s
+Comment: Duzentos used once
+FimdoTeste 000000A0
+
+Symbol: FimdoTeste
+   Definitions
+      At line 107 in file exemplo.s
+   Uses
+      At line 73 in file exemplo.s
+      At line 78 in file exemplo.s
+      At line 81 in file exemplo.s
+      At line 84 in file exemplo.s
+      At line 110 in file exemplo.s
+
+FinalSwitch 000000FE
+
+Symbol: FinalSwitch
+   Definitions
+      At line 157 in file exemplo.s
+   Uses
+      At line 127 in file exemplo.s
+      At line 133 in file exemplo.s
+      At line 139 in file exemplo.s
+      At line 145 in file exemplo.s
+      At line 151 in file exemplo.s
+
+MainLoop 0000001C
+
+Symbol: MainLoop
+   Definitions
+      At line 53 in file exemplo.s
+   Uses
+      At line 60 in file exemplo.s
+Comment: MainLoop used once
+Mil 0000008E
+
+Symbol: Mil
+
+
+
+ARM Macro Assembler    Page 2 Alphabetic symbol ordering
+Relocatable symbols
+
+   Definitions
+      At line 98 in file exemplo.s
+   Uses
+      At line 93 in file exemplo.s
+Comment: Mil used once
+Passeio 000000AE
+
+Symbol: Passeio
+   Definitions
+      At line 118 in file exemplo.s
+   Uses
+      At line 56 in file exemplo.s
+Comment: Passeio used once
+Quinhentos 00000094
+
+Symbol: Quinhentos
+   Definitions
+      At line 101 in file exemplo.s
+   Uses
+      At line 95 in file exemplo.s
+Comment: Quinhentos used once
+Start 00000000
+
+Symbol: Start
+   Definitions
+      At line 43 in file exemplo.s
+   Uses
+      At line 27 in file exemplo.s
+Comment: Start used once
+TestaChave 00000036
+
+Symbol: TestaChave
+   Definitions
+      At line 63 in file exemplo.s
+   Uses
+      At line 54 in file exemplo.s
+Comment: TestaChave used once
+TrocaModo 00000074
+
+Symbol: TrocaModo
+   Definitions
+      At line 85 in file exemplo.s
+   Uses
+      At line 72 in file exemplo.s
+      At line 82 in file exemplo.s
+
+TrocaVelocidade 0000007E
+
+Symbol: TrocaVelocidade
+   Definitions
+      At line 91 in file exemplo.s
+   Uses
+      At line 77 in file exemplo.s
+      At line 83 in file exemplo.s
+
+Verifica_Ambas 00000062
+
+Symbol: Verifica_Ambas
+   Definitions
+
+
+
+ARM Macro Assembler    Page 3 Alphabetic symbol ordering
+Relocatable symbols
+
+      At line 79 in file exemplo.s
+   Uses
+      At line 76 in file exemplo.s
+Comment: Verifica_Ambas used once
+Verifica_SW1 00000046
+
+Symbol: Verifica_SW1
+   Definitions
+      At line 69 in file exemplo.s
+   Uses
+      None
+Comment: Verifica_SW1 unused
+Verifica_SW2 00000054
+
+Symbol: Verifica_SW2
+   Definitions
+      At line 74 in file exemplo.s
+   Uses
+      At line 71 in file exemplo.s
+Comment: Verifica_SW2 used once
+16 symbols
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+External symbols
+
+GPIO_Init 00000000
+
+Symbol: GPIO_Init
+   Definitions
+      At line 36 in file exemplo.s
+   Uses
+      At line 47 in file exemplo.s
+Comment: GPIO_Init used once
+PLL_Init 00000000
+
+Symbol: PLL_Init
+   Definitions
+      At line 33 in file exemplo.s
+   Uses
+      At line 45 in file exemplo.s
+Comment: PLL_Init used once
+PortF_Output 00000000
+
+Symbol: PortF_Output
+   Definitions
+      At line 37 in file exemplo.s
+   Uses
+      At line 159 in file exemplo.s
+      At line 174 in file exemplo.s
+
+PortJ_Input 00000000
+
+Symbol: PortJ_Input
+   Definitions
+      At line 39 in file exemplo.s
+   Uses
+      At line 65 in file exemplo.s
+      At line 108 in file exemplo.s
+
+PortN_Output 00000000
+
+Symbol: PortN_Output
+   Definitions
+      At line 38 in file exemplo.s
+   Uses
+      At line 161 in file exemplo.s
+      At line 176 in file exemplo.s
+
+SysTick_Init 00000000
+
+Symbol: SysTick_Init
+   Definitions
+      At line 34 in file exemplo.s
+   Uses
+      At line 46 in file exemplo.s
+Comment: SysTick_Init used once
+SysTick_Wait1ms 00000000
+
+Symbol: SysTick_Wait1ms
+   Definitions
+      At line 35 in file exemplo.s
+   Uses
+      At line 59 in file exemplo.s
+      At line 68 in file exemplo.s
+
+
+
+ARM Macro Assembler    Page 2 Alphabetic symbol ordering
+External symbols
+
+
+7 symbols
+358 symbols in table

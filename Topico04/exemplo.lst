@@ -1,0 +1,277 @@
+
+
+
+ARM Macro Assembler    Page 1 
+
+
+    1 00000000         ; Exemplo.s
+    2 00000000         ; Desenvolvido para a placa EK-TM4C1294XL
+    3 00000000         ; Prof. Guilherme Peron
+    4 00000000         ; 12/03/2018
+    5 00000000         
+    6 00000000         ; ------------------------------------------------------
+                       -------------------------
+    7 00000000                 THUMB                        ; Instruções do tip
+                                                            o Thumb-2
+    8 00000000         ; ------------------------------------------------------
+                       -------------------------
+    9 00000000         ; Declarações EQU - Defines
+   10 00000000         ;<NOME>         EQU <VALOR>
+   11 00000000         ; ------------------------------------------------------
+                       -------------------------
+   12 00000000         ; Área de Dados - Declarações de variáveis
+   13 00000000                 AREA             DATA, ALIGN=2
+   14 00000000         ; Se alguma variável for chamada em outro arquivo
+   15 00000000         ;EXPORT  <var> [DATA,SIZE=<tam>]   ; Permite chamar a va
+                       riável <var> a 
+   16 00000000         ; partir de outro arquivo
+   17 00000000         ;<var> SPACE <tam>                        ; Declara uma 
+                       variável de nome <var>
+   18 00000000         ; de <tam> bytes a partir da primeira 
+   19 00000000         ; posição da RAM  
+   20 00000000         
+   21 00000000         ; ------------------------------------------------------
+                       -------------------------
+   22 00000000         ; Área de Código - Tudo abaixo da diretiva a seguir será
+                        armazenado na memória de 
+   23 00000000         ;                  código
+   24 00000000                 AREA             |.text|, CODE, READONLY, ALIGN=
+2
+   25 00000000         
+   26 00000000         ; Se alguma função do arquivo for chamada em outro arqui
+                       vo 
+   27 00000000                 EXPORT           Start       ; Permite chamar a 
+                                                            função Start a part
+                                                            ir de 
+   28 00000000         ; outro arquivo. No caso startup.s
+   29 00000000         
+   30 00000000         ; Se chamar alguma função externa 
+   31 00000000         ;IMPORT <func>              ; Permite chamar dentro dest
+                       e arquivo uma 
+   32 00000000         ; função <func>
+   33 00000000         
+   34 00000000         ; ------------------------------------------------------
+                       -------------------------
+   35 00000000         ; Função main()
+   36 00000000         Start
+   37 00000000         ; Comece o código aqui <================================
+                       ======================
+   38 00000000         ; 1)
+   39 00000000         ; MOV R0, #65
+   40 00000000         ; MOV R1, #0x1B001B00
+   41 00000000         ; MOV R2, #5678
+   42 00000000         ; MOVT R2, #1234
+   43 00000000         ; LDR R3, =0x20000040
+   44 00000000         ; STR R0, [R3],#4
+
+
+
+ARM Macro Assembler    Page 2 
+
+
+   45 00000000         ; STR R1, [R3]
+   46 00000000         ; STR R2, [R3,#4]
+   47 00000000         ; LDR R4, =0xF0001
+   48 00000000         ; STR R4, [R3, #8]!
+   49 00000000         ; MOV R0, #0xCD
+   50 00000000         ; STRB R0, [R3, #-6]!
+   51 00000000         ; LDR R7, [R3, #-6]
+   52 00000000         ; LDR R8, [R3, #2]
+   53 00000000         ; NOP
+   54 00000000         
+   55 00000000         ; 2)
+   56 00000000         ; MOV R0, #0xF0
+   57 00000000         ; MOV R1, #2_01010101
+   58 00000000         ; ANDS R0, R1
+   59 00000000         ; MOV R1, #2_11001100
+   60 00000000         ; MOV R2, #2_00110011
+   61 00000000         ; ANDS R1, R2
+   62 00000000         ; MOV R2, #2_10000000
+   63 00000000         ; MOV R3, #2_00110111
+   64 00000000         ; ORRS R2, R3
+   65 00000000         ; MOV R3, #0xABCD
+   66 00000000         ; MOVT R3, #0xABCD
+   67 00000000         ; MOV R4, #0xFFFF
+   68 00000000         ; BICS R3, R4
+   69 00000000         ; NOP
+   70 00000000         
+   71 00000000         ; 3)
+   72 00000000         ; MOV R0, #701
+   73 00000000         ; LSRS R0, #5
+   74 00000000         ; MOV R1, #32067
+   75 00000000         ; NEG R1, R1
+   76 00000000         ; LSRS R1, #4
+   77 00000000         ; MOV R2, #701
+   78 00000000         ; ASRS R2, #3
+   79 00000000         ; MOV R3, #32067
+   80 00000000         ; NEG R3, R3
+   81 00000000         ; ASRS R3, #4
+   82 00000000         ; MOV R4, #255
+   83 00000000         ; LSLS R4, #8
+   84 00000000         ; MOV R5, #58982
+   85 00000000         ; NEG R5, R5
+   86 00000000         ; LSLS R5, #18
+   87 00000000         ; LDR R6, =0xFABC1234
+   88 00000000         ; ROR R6, #10
+   89 00000000         ; MOV R7, #0x4321
+   90 00000000         ; RRX R7, R7
+   91 00000000         ; RRX R7, R7
+   92 00000000         ; NOP
+   93 00000000         
+   94 00000000         ; 4)
+   95 00000000         ; MOV R0, #101
+   96 00000000         ; ADDS R0, #253
+   97 00000000         ; LDR R1, =40543
+   98 00000000         ; ADD R1, #1500
+   99 00000000         ; MOV R2, #340
+  100 00000000         ; SUBS R2, #123
+  101 00000000         ; MOV R3, #1000
+  102 00000000         ; SUBS R3, #2000
+  103 00000000         ; MOV R4, #54378
+
+
+
+ARM Macro Assembler    Page 3 
+
+
+  104 00000000         ; MOV R5, #4
+  105 00000000         ; MUL R4, R5
+  106 00000000         ; LDR R5, =11223344
+  107 00000000         ; LDR R6, =44332211
+  108 00000000         ; UMULL R6, R5, R5, R6
+  109 00000000         ; LDR R7, =0xFFFF7560
+  110 00000000         ; LDR R8, =0xFFFF7560
+  111 00000000         ; MOV R9, #1000
+  112 00000000         ; UDIV R7, R9
+  113 00000000         ; SDIV R8, R9
+  114 00000000         ; NOP
+  115 00000000         ; 
+  116 00000000         ; 5)
+  117 00000000         ; MOV R0, #10
+  118 00000000         ; CMP R0, #9
+  119 00000000         ; ITTE CS
+  120 00000000         ;  MOVCS R1, #50
+  121 00000000         ;  ADDCS R2, R1, #32
+  122 00000000         ;  MOVCC R3, #75
+  123 00000000         ; CMP R0, #11
+  124 00000000         ; ITTE CS
+  125 00000000         ;  MOVCS R1, #50
+  126 00000000         ;  ADDCS R2, R1, #32
+  127 00000000         ;  MOVCC R3, #75
+  128 00000000         ; NOP
+  129 00000000         ;
+  130 00000000         ; 6)
+  131 00000000         ; MOV R0, #10
+  132 00000000         ; LDR R1, =0xFF11CC22
+  133 00000000         ; MOV R2, #1234
+  134 00000000         ; MOV R3, #0x300
+  135 00000000         ; PUSH {R0}
+  136 00000000         ; PUSH {R1,R2,R3}
+  137 00000000         ; MOV R1, #60
+  138 00000000         ; MOV R2, #0x1234
+  139 00000000         ; POP {R1}
+  140 00000000         ; POP {R2}
+  141 00000000         ; POP {R3}
+  142 00000000         ; POP {R0}
+  143 00000000         ; NOP
+  144 00000000         ;
+  145 00000000         ; 7)
+  146 00000000 F04F 000A       MOV              R0, #10
+  147 00000004         loop
+  148 00000004 F100 0005       ADD              R0, #5
+  149 00000008 2832            CMP              R0, #50
+  150 0000000A BF08 F000 
+              F804             BLEQ             cinquenta
+  151 00000010 BF00            NOP
+  152 00000012 2832            CMP              R0, #50
+  153 00000014 D006            BEQ              final
+  154 00000016 E7F5            B                loop
+  155 00000018         cinquenta
+  156 00000018 4601            MOV              R1, R0
+  157 0000001A 2932            CMP              R1, #50
+  158 0000001C BF34            ITE              CC
+  159 0000001E 3101            ADDCC            R1, #1
+  160 00000020 4249            NEGCS            R1, R1
+  161 00000022 4770            BX               LR
+
+
+
+ARM Macro Assembler    Page 4 
+
+
+  162 00000024         final
+  163 00000024 BF00            NOP
+  164 00000026         
+  165 00000026 BF00            NOP
+  166 00000028                 ALIGN                        ; garante que o fim
+                                                             da seção está alin
+                                                            hada 
+  167 00000028                 END                          ; fim do arquivo
+Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M4.fp.sp --apcs=
+interwork --depend=.\exemplo.d -o.\exemplo.o -I.\RTE\_Target_1 -IC:\Users\User\
+AppData\Local\Arm\Packs\Keil\TM4C_DFP\1.1.0\Device\Include\TM4C129 -IC:\Keil_v5
+\ARM\CMSIS\Include --predefine="__EVAL SETA 1" --predefine="__UVISION_VERSION S
+ETA 529" --predefine="TM4C1294NCPDT SETA 1" --list=.\exemplo.lst exemplo.s
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Relocatable symbols
+
+DATA 00000000
+
+Symbol: DATA
+   Definitions
+      At line 13 in file exemplo.s
+   Uses
+      None
+Comment: DATA unused
+1 symbol
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Relocatable symbols
+
+.text 00000000
+
+Symbol: .text
+   Definitions
+      At line 24 in file exemplo.s
+   Uses
+      None
+Comment: .text unused
+Start 00000000
+
+Symbol: Start
+   Definitions
+      At line 36 in file exemplo.s
+   Uses
+      At line 27 in file exemplo.s
+Comment: Start used once
+cinquenta 00000018
+
+Symbol: cinquenta
+   Definitions
+      At line 155 in file exemplo.s
+   Uses
+      At line 150 in file exemplo.s
+Comment: cinquenta used once
+final 00000024
+
+Symbol: final
+   Definitions
+      At line 162 in file exemplo.s
+   Uses
+      At line 153 in file exemplo.s
+Comment: final used once
+loop 00000004
+
+Symbol: loop
+   Definitions
+      At line 147 in file exemplo.s
+   Uses
+      At line 154 in file exemplo.s
+Comment: loop used once
+5 symbols
+340 symbols in table
