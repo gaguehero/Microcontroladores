@@ -1,2 +1,2 @@
 # Microprocessados
-Trabalhos e exercícios da disciplina de microprocessados, realizada em 2020.
+Trabalhos e exercícios da disciplina de microcontrolados, realizada em 2020.
